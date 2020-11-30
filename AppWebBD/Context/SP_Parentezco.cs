@@ -8,7 +8,7 @@ namespace AppWebBD.Context
 {
     public class SP_Parentezco
     {
-        string connectionString = "Data Source=proyectobd.cwzzdv93j6mm.us-east-2.rds.amazonaws.com;Initial Catalog=ProyectoBD1;User ID=Admin;Password= AdminAWS123";
+        string connectionString = "Data Source=LAPTOP-140FDP4P;Initial Catalog=ProyectoBD1;Integrated Security=true;";//Aqui Solo cambiar el nombre del data source si se cambia de BD
         public Parentezco SeleccionarParentezco(int? ParentezcoId) //El signo de pregunta sirve para generar un error si el contenido es NULL
         {
             var parentezco = new Parentezco();
