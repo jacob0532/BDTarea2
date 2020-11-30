@@ -61,7 +61,20 @@ FROM @xmlData.nodes('Catalogos/Tipo_Cuenta_Ahorros/TipoCuentaAhorro') xmlData(re
 LEFT JOIN TipoCuentaAhorro TC on TC.id =  ref.value('@Id', 'int')
 WHERE TC.id IS NULL
 
-Select * from TipoDocIdentidad
-Select * from TipoMoneda
-Select * from Parentezco
-Select * from TipoCuentaAhorro
+INSERT INTO TipoMovimientoCuentaAhorro(
+		id
+		,Nombre
+		,TipoOperacion
+	)
+SELECT	ref.value('@Id', 'int')
+		,ref.value('@Nombre', 'varchar(50)')
+		,ref.value('@Tipo', 'varchar(50)')
+FROM @xmlData.nodes('Catalogos/Tipo_Movimientos/Tipo_Movimiento ') xmlData(ref)
+LEFT JOIN TipoMovimientoCuentaAhorro TM ON TM.id = ref.value('@Id', 'int')
+WHERE TM.id IS NULL
+
+SELECT * FROM TipoDocIdentidad
+SELECT * FROM TipoMoneda
+SELECT * FROM Parentezco
+SELECT * FROM TipoCuentaAhorro
+SELECT * FROM TipoMovimientoCuentaAhorro
