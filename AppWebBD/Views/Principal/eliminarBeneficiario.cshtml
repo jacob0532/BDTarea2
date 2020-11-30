@@ -1,0 +1,43 @@
+﻿@model AppWebBD.Models.Beneficiarios
+
+@{
+    ViewData["Title"] = "eliminarBeneficiario";
+    Layout = "~/Views/Shared/_LayoutUsuario.cshtml";
+}
+
+<h1>Eliminar Beneficiario</h1>
+
+
+<br />
+<div>
+    <h4>Beneficiario</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.NumeroCuenta)
+        </dt>
+        <dd class="col-12">
+            @Html.DisplayFor(model => model.NumeroCuenta)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ValorDocumentoIdentidadBeneficiario)
+        </dt>
+        <dd class="col-12">
+            @Html.DisplayFor(model => model.ValorDocumentoIdentidadBeneficiario)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ParentezcoId)
+        </dt>
+        <dd class="col-12">
+            @Html.DisplayFor(model => model.ParentezcoId)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Porcentaje)
+        </dt>
+        <dd class="col-12">
+            @Html.DisplayFor(model => model.Porcentaje)
+        </dd>
+    </dl>
+    @Html.ActionLink("Eliminar", "eliminarConfirmed", new { ValorDocumentoIdentidadBeneficiario = Model.ValorDocumentoIdentidadBeneficiario, numeroCuenta = Model.NumeroCuenta })
+</div>
+@Html.ActionLink("<--Volver", "volverIndex", new { })
