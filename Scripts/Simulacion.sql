@@ -1,7 +1,7 @@
 USE ProyectoBD1
 --Se lee el archivo xml
 DECLARE @xmlData XML
--- Nota: cambiar el path del from
+-- Nota: cambiar el path del from C:\Users\yeico\Desktop\BDTarea2\XML\catalogos.xml
 SET @xmlData = (
 		SELECT *
 		FROM OPENROWSET(BULK 'C:\Users\dvarg\Desktop\TEC\2020\Segundo Semestre\Bases de datos\Proyectos\Proyecto 2\BDTarea2\XML\operaciones.xml', SINGLE_BLOB) 

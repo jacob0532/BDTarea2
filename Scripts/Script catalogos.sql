@@ -1,11 +1,12 @@
 USE ProyectoBD1
---Se lee el archivo XML
+--Se lee el archivo XML   Ruta: C:\Users\yeico\Desktop\BDTarea2\XML\catalogos.xml jacob
 DECLARE @xmlData XML
 
 SET @xmlData = (
 		SELECT *
 		FROM OPENROWSET(BULK 'C:\Users\dvarg\Desktop\TEC\2020\Segundo Semestre\Bases de datos\Proyectos\Proyecto 2\BDTarea2\XML\catalogos.xml', SINGLE_BLOB) AS xmlData
 		)
+
 
 --Inserta el tipo de documento de indentidad de los xml
 INSERT INTO TipoDocIdentidad (id, Nombre )
