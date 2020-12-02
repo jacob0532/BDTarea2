@@ -1,16 +1,11 @@
 DECLARE
- @outCuentaObjetivoId INT
+ @outPersonaId INT
  , @OutResultCode INT
-EXEC dbo.CrearCuentaObjetivo
-'2020-10-7',
-'2020-11-8',
-200,
-'Mundial',
-260,
-30,
-1,
-@outCuentaObjetivoId OUTPUT,
+EXEC dbo.SeleccionarPersona
+6,
+
+@outPersonaId OUTPUT,
 @OutResultCode OUTPUT
 
-SELECT @outCuentaObjetivoId, @OutResultCode
+SELECT @outPersonaId, @OutResultCode
 select * from errores 

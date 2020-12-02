@@ -25,7 +25,8 @@ namespace AppWebBD.Context
                 SqlDataReader dr = cmd.ExecuteReader();
                 while (dr.Read())
                 {
-                    usuario.User = dr["User"].ToString();
+                    usuario.id = Convert.ToInt32(dr["id"]);
+                    usuario.NombreUsuario = dr["NombreUsuario"].ToString();
                     usuario.Pass = dr["Pass"].ToString();
                     usuario.ValorDocIdentidad = Convert.ToInt32(dr["ValorDocIdentidad"].ToString());
                     usuario.EsAdmi = Convert.ToInt32(dr["EsAdmi"]);

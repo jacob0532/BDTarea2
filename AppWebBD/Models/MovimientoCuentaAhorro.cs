@@ -11,5 +11,6 @@ namespace AppWebBD.Models
         public int EstadoCuentaid { get; set; }
         public int TipoMovimientoCuentaAhorrosid { get; set; }
         public int CuentaAhorroid { get; set; }
+        public string Descripcion { get; set; }
     }
 }

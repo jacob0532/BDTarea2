@@ -6,7 +6,7 @@ namespace AppWebBD.Models
     {
         public int id { get; set; }
         public string Nombre { get; set; }
-        public int TipoOperacion { get; set; }  //Booleano 1 o 0 
+        public string TipoOperacion { get; set; }  //debito o credito
 
     }
 }

@@ -9,23 +9,24 @@ namespace AppWebBD.Context
     public class SP_CuentaAhorro
     {
         string connectionString = "Data Source=LAPTOP-140FDP4P;Initial Catalog=ProyectoBD1;Integrated Security=true;";//Aqui Solo cambiar el nombre del data source si se cambia de BD
-        public IEnumerable<CuentaAhorro> SeleccionarCuentaPorCedula(int? ValorDocIdentidad) //El signo de pregunta sirve para generar un error si el contenido es NULL
+        public IEnumerable<CuentaAhorro> SeleccionarCuentaPorCedula(int? Personaid) //El signo de pregunta sirve para generar un error si el contenido es NULL
         {
             var cuentaAhorroLista = new List<CuentaAhorro>();
 
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                SqlCommand cmd = new SqlCommand("SP_SeleccionarCuentaAhorro", con);
+                SqlCommand cmd = new SqlCommand("SeleccionarCuentaAhorro", con);
                 cmd.CommandType = CommandType.StoredProcedure;
 
-                cmd.Parameters.AddWithValue("@Clienteid", ValorDocIdentidad);
+                cmd.Parameters.AddWithValue("@inPersonaid", Personaid);
 
                 con.Open();
                 SqlDataReader dr = cmd.ExecuteReader();
                 while (dr.Read())
                 {
                     var cuentaAhorro = new CuentaAhorro();
-                    cuentaAhorro.Clienteid = Convert.ToInt32(dr["Clienteid"]);
+                    cuentaAhorro.id = Convert.ToInt32(dr["id"]);
+                    cuentaAhorro.Personaid = Convert.ToInt32(dr["Personaid"]);
                     cuentaAhorro.TipoCuentaid = Convert.ToInt32(dr["TipoCuentaid"]);
                     cuentaAhorro.NumeroCuenta = Convert.ToInt64(dr["NumeroCuenta"]);
                     cuentaAhorro.FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"]).ToString("d");
@@ -49,7 +50,8 @@ namespace AppWebBD.Context
                 while (dr.Read())
                 {
                     var cuentaAhorro = new CuentaAhorro();
-                    cuentaAhorro.Clienteid = Convert.ToInt32(dr["Clienteid"]);
+                    cuentaAhorro.id = Convert.ToInt32(dr["id"]);
+                    cuentaAhorro.Personaid = Convert.ToInt32(dr["Personaid"]);
                     cuentaAhorro.TipoCuentaid = Convert.ToInt32(dr["TipoCuentaid"]);
                     cuentaAhorro.NumeroCuenta = Convert.ToInt64(dr["NumeroCuenta"]);
                     cuentaAhorro.FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"]).ToString("d");

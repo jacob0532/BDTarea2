@@ -4,6 +4,10 @@ namespace AppWebBD.Models
 {
     public class Beneficiarios
     {
+        public int id { get; set; }
+        public int Personaid { get; set; }
+        public int CuentaAhorroid { get; set; }
+
         public long NumeroCuenta { get; set; }
         public int ValorDocumentoIdentidadBeneficiario { get; set; }
         public int ParentezcoId { get; set; }
