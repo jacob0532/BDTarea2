@@ -20,12 +20,15 @@ BEGIN
 		DECLARE @SaldoFinal MONEY = 0
 		DECLARE @TipoCuentaAhorroId INT
 		DECLARE @CuentaId INT, @EstadoCuentaId INT
+		DECLARE @MultaSaldoMin MONEY, @SaldoMin MONEY
 
 		-- Se inicializan variables
 		SELECT @OutResultCode = 0
 		SELECT @CuentaId = Id FROM CuentaAhorro WHERE NumeroCuenta = @inCuentaCierra
 		SELECT @TipoCuentaAhorroId = TipoCuentaId FROM CuentaAhorro CA WHERE CA.id = @CuentaId
 		SELECT @EstadoCuentaId = id FROM EstadoCuenta EC WHERE EC.CuentaAhorroid = @CuentaId AND EC.FechaInicio = @inFechaInicio
+		SELECT @MultaSaldoMin = T.MultaSaldoMin, @SaldoMin = T.SaldoMinimo FROM TipoCuentaAhorro T WHERE T.id = @TipoCuentaAhorroId 
+		
 
 		SET TRANSACTION ISOLATION LEVEL READ COMMITTED
 
@@ -59,8 +62,10 @@ BEGIN
 				BEGIN
 					SELECT @SaldoFinal = @SaldoFinal - (SELECT ComisionAutomatico FROM TipoCuentaAhorro TC WHERE TC.id = @TipoCuentaAhorroId)
 				END;
-			--CALCULAR INTERESES
-			--CALCULAR MULTAS POR SALDO MINIMO
+			IF(@SaldoFinal < @SaldoMin) -- Multa por saldo minimo
+				BEGIN
+					SELECT @SaldoFinal = @SaldoFinal - @MultaSaldoMin
+				END;
 
 			--Se actualiza el movimiento en la base de datos
 			UPDATE dbo.EstadoCuenta
