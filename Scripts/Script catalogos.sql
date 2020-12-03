@@ -4,7 +4,7 @@ DECLARE @xmlData XML
 
 SET @xmlData = (
 		SELECT *
-		FROM OPENROWSET(BULK 'C:\Users\dvarg\Desktop\TEC\2020\Segundo Semestre\Bases de datos\Proyectos\Proyecto 2\BDTarea2\XML\catalogos.xml', SINGLE_BLOB) AS xmlData
+		FROM OPENROWSET(BULK 'C:\Users\dvarg\Desktop\TEC\2020\Segundo Semestre\Bases de datos\Proyectos\Proyecto 2\BDTarea2\XML\Datos_Tarea_2_Catalogos.xml', SINGLE_BLOB) AS xmlData
 		)
 
 
