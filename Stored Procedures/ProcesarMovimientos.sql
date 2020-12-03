@@ -64,8 +64,13 @@ BEGIN
 					UPDATE dbo.MovimientoCuentaAhorro
 					SET NuevoSaldo = @nuevoSaldo
 					WHERE Id = @MovimientoId
-					SELECT @MovimientoId
-					SELECT NuevoSaldo FROM MovimientoCuentaAhorro WHERE Id = @MovimientoId
+
+					UPDATE dbo.CuentaAhorro
+					SET Saldo = @nuevoSaldo
+					WHERE NumeroCuenta = @CuentaId
+
+					--SELECT NuevoSaldo FROM MovimientoCuentaAhorro WHERE Id = @MovimientoId
+
 					SET @lo = @lo + 1
 				END
 			--FIN WHILE
