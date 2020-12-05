@@ -38,6 +38,7 @@ BEGIN
 	FROM @TablaFecha.nodes('FechaOperacion/Usuario') AS xmlData(ref) 
 	LEFT JOIN Usuario U on U.ValorDocIdentidad = ref.value('@ValorDocumentoIdentidad', 'int')
 	WHERE U.id IS NULL
+
 --SE PROCESA LA  INSERCION DE USUARIOS PUEDE VER
 	INSERT INTO UsuarioPuedeVer(
 		NombreUsuario
@@ -89,6 +90,7 @@ BEGIN
 	LEFT JOIN CuentaAhorro C on C.NumeroCuenta =  ref.value('@NumeroCuenta', 'int')
 	WHERE C.NumeroCuenta IS NULL
 
+
 --SE PROCESAN LOS BENEFICIARIOS.
 	INSERT INTO Beneficiarios (
 		Personaid
@@ -139,7 +141,7 @@ BEGIN
 		)
 	SELECT	@fechaOperacion
 			,ref.value('@Monto','money')
-			,NULL
+			,0
 			,(SELECT TOP(1) id FROM EstadoCuenta E WHERE E.NumeroCuenta = C.NumeroCuenta)
 			,ref.value('@Tipo','int')
 			,C.id
@@ -186,16 +188,16 @@ BEGIN
 		END
 --FIN WHILE 
 
-	DELETE @CuentasCierran
+	DELETE @CuentasCierran	
 	SET @lo = @lo + 1
 END;
 --SELECT * FROM Usuario
 --SELECT * FROM UsuarioPuedeVer
 --SELECT * FROM Persona
-SELECT * FROM CuentaAhorro
 --SELECT * FROM Beneficiarios
+--SELECT * FROM CuentaAhorro
 --SELECT * FROM EstadoCuenta
-SELECT * FROM MovimientoCuentaAhorro
+--SELECT * FROM MovimientoCuentaAhorro
 
 --DELETE Usuario
 --DELETE UsuarioPuedeVer
@@ -204,3 +206,5 @@ SELECT * FROM MovimientoCuentaAhorro
 --DELETE Beneficiarios
 --DELETE EstadoCuenta
 --DELETE MovimientoCuentaAhorro	
+
+SELECT  * FROM EstadoCuenta E WHERE E.NumeroCuenta = 11336076
