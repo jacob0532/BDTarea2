@@ -127,26 +127,6 @@ BEGIN
 	SELECT ref.value('@NumeroCuenta','int') 
 	FROM @TablaFecha.nodes('FechaOperacion/Cuenta') AS xmlData(ref)
 
---SE CREAN LOS ESTADOS DE CUENTA
-	INSERT INTO EstadoCuenta(
-			CuentaAhorroid
-			,NumeroCuenta
-			,FechaInicio
-			,FechaFin
-			,SaldoInicial
-			,SaldoFinal
-	)
-	SELECT	C.id
-			,ref.value('@NumeroCuenta', 'int')
-			,@fechaOperacion
-			,DATEADD(month, 1, @fechaOperacion)
-			,C.Saldo
-			,C.Saldo
-	FROM @TablaFecha.nodes('FechaOperacion/Cuenta') AS xmlData(ref) 
-	INNER JOIN CuentaAhorro C ON C.NumeroCuenta = ref.value('@NumeroCuenta', 'int')
-	LEFT JOIN EstadoCuenta EC ON EC.FechaInicio = @fechaOperacion
-	WHERE EC.FechaInicio IS NULL
-
 --SE PROCESAN LOS MOVIMIENTOS DE LA CUENTA
 	INSERT INTO MovimientoCuentaAhorro(
 			Fecha
@@ -159,13 +139,13 @@ BEGIN
 		)
 	SELECT	@fechaOperacion
 			,ref.value('@Monto','money')
-			,(SELECT SaldoFinal FROM CuentaAhorro C WHERE C.NumeroCuenta = ref.value('@CodigoCuenta', 'int'))
-			,EC.id
+			,NULL
+			,(SELECT TOP(1) id FROM EstadoCuenta E WHERE E.NumeroCuenta = C.NumeroCuenta)
 			,ref.value('@Tipo','int')
-			,EC.CuentaAhorroid
+			,C.id
 			,ref.value('@Descripcion','varchar(100)')
 	FROM @TablaFecha.nodes('FechaOperacion/Movimientos') AS xmlData(ref)
-	INNER JOIN EstadoCuenta EC ON EC.NumeroCuenta = ref.value('@CodigoCuenta', 'int')
+	INNER JOIN CuentaAhorro C ON C.NumeroCuenta = ref.value('@CodigoCuenta', 'int')
 
 --INICIO WHILE ESTADO CUENTA
 	SELECT @lo1=min(sec), @hi1=max(sec) FROM @CuentasCierran
@@ -177,6 +157,7 @@ BEGIN
 					,@OutResultCode INT
 					,@FechaFin DATE
 			SELECT @FechaFin = DATEADD(month, 1, @fechaOperacion)
+			--Stored procedure para cerrar el estado de cuenta.
 			EXEC [dbo].[CerrarEstadoCuenta] 
 				@CuentaCierra
 				,@fechaOperacion
@@ -211,15 +192,15 @@ END;
 --SELECT * FROM Usuario
 --SELECT * FROM UsuarioPuedeVer
 --SELECT * FROM Persona
---SELECT * FROM CuentaAhorro
+SELECT * FROM CuentaAhorro
 --SELECT * FROM Beneficiarios
 --SELECT * FROM EstadoCuenta
 SELECT * FROM MovimientoCuentaAhorro
 
-DELETE Usuario
-DELETE UsuarioPuedeVer
-DELETE Persona
-DELETE CuentaAhorro
-DELETE Beneficiarios
-DELETE EstadoCuenta
-DELETE MovimientoCuentaAhorro
+--DELETE Usuario
+--DELETE UsuarioPuedeVer
+--DELETE Persona
+--DELETE CuentaAhorro
+--DELETE Beneficiarios
+--DELETE EstadoCuenta
+--DELETE MovimientoCuentaAhorro	
