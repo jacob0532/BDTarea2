@@ -1,5 +1,5 @@
-CREATE TRIGGER PrimerEstadoCuenta
-ON CuentaAhorro
+CREATE TRIGGER [dbo].[PrimerEstadoCuenta]
+ON [dbo].[CuentaAhorro]
 AFTER INSERT
 AS
 BEGIN
@@ -15,11 +15,13 @@ BEGIN
     SELECT
 		C.id
 		,C.NumeroCuenta
-		,FechaCreacion
+		,C.FechaCreacion
 		,DATEADD(MONTH,1,FechaCreacion)
 		,C.Saldo
 		,0
 		
     FROM CuentaAhorro C
+	LEFT JOIN EstadoCuenta EC on EC.FechaInicio = C.FechaCreacion
+	WHERE EC.id IS NULL
 
 END
