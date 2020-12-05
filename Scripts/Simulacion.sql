@@ -168,22 +168,22 @@ BEGIN
 				,@OutResultCode OUTPUT
 
 			--Se inserta estado de cuenta para el nuevo mes
-			INSERT INTO EstadoCuenta(
-				CuentaAhorroid
-				,NumeroCuenta
-				,FechaInicio
-				,FechaFin
-				,SaldoInicial
-				,SaldoFinal
-			)
-			SELECT	CA.id
-					,CA.NumeroCuenta
-					,@FechaFin
-					,DATEADD(month, 1, @FechaFin)
-					,CA.Saldo
-					,0
-			FROM CuentaAhorro CA
-			WHERE CA.NumeroCuenta = @CuentaCierra
+			--INSERT INTO EstadoCuenta(
+			--	CuentaAhorroid
+			--	,NumeroCuenta
+			--	,FechaInicio
+			--	,FechaFin
+			--	,SaldoInicial
+			--	,SaldoFinal
+			--)
+			--SELECT	CA.id
+			--		,CA.NumeroCuenta
+			--		,@FechaFin
+			--		,DATEADD(month, 1, @FechaFin)
+			--		,CA.Saldo
+			--		,0
+			--FROM CuentaAhorro CA
+			--WHERE CA.NumeroCuenta = @CuentaCierra
 			SET @LO1 = @LO1 + 1
 		END
 --FIN WHILE 
@@ -197,7 +197,7 @@ END;
 --SELECT * FROM Beneficiarios
 --SELECT * FROM CuentaAhorro
 --SELECT * FROM EstadoCuenta
---SELECT * FROM MovimientoCuentaAhorro
+SELECT * FROM MovimientoCuentaAhorro
 
 --DELETE Usuario
 --DELETE UsuarioPuedeVer
@@ -207,4 +207,4 @@ END;
 --DELETE EstadoCuenta
 --DELETE MovimientoCuentaAhorro	
 
-SELECT  * FROM EstadoCuenta E WHERE E.NumeroCuenta = 11336076
+--SELECT  * FROM EstadoCuenta E WHERE E.NumeroCuenta = 11336076
