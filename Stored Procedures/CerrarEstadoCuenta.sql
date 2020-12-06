@@ -21,17 +21,23 @@ BEGIN
 		DECLARE @TipoCuentaAhorroId INT
 		DECLARE @CuentaId INT, @EstadoCuentaId INT
 		DECLARE @MultaSaldoMin MONEY, @SaldoMin MONEY
+		DECLARE @NumeroRetirosHumano INT, @NumeroRetirosAutomatico INT
+		DECLARE @MultaNumRetirosCH MONEY, @MultaNumRetirosCA MONEY
+		DECLARE @Interes MONEY
 
 		-- Se inicializan variables
-		SELECT @OutResultCode = 0
-		SELECT @CuentaId = Id FROM CuentaAhorro WHERE NumeroCuenta = @inCuentaCierra
-		SELECT @TipoCuentaAhorroId = TipoCuentaId FROM CuentaAhorro CA WHERE CA.id = @CuentaId
-		SELECT @EstadoCuentaId = id FROM EstadoCuenta EC WHERE EC.CuentaAhorroid = @CuentaId AND EC.FechaInicio = @inFechaInicio
-		SELECT @MultaSaldoMin = T.MultaSaldoMin, @SaldoMin = T.SaldoMinimo FROM TipoCuentaAhorro T WHERE T.id = @TipoCuentaAhorroId 
+		SELECT @OutResultCode = 0	--Codigo de retorno
+		SELECT @CuentaId = Id FROM CuentaAhorro WHERE NumeroCuenta = @inCuentaCierra	--Id de la cuenta asociado al numero de cuenta.
+		SELECT @TipoCuentaAhorroId = CA.TipoCuentaId FROM CuentaAhorro CA WHERE CA.id = @CuentaId		--El tipo de cuenta de ahorro de la cuenta
+		SELECT @EstadoCuentaId = id FROM EstadoCuenta EC WHERE EC.CuentaAhorroid = @CuentaId AND EC.FechaInicio = @inFechaInicio AND Ec.FechaFin = @inFechaFin	--El id del estado de cuenta
+		SELECT @MultaSaldoMin = T.MultaSaldoMin, @SaldoMin = T.SaldoMinimo FROM TipoCuentaAhorro T WHERE T.id = @TipoCuentaAhorroId --Multa de saldo minimo
+		SELECT @NumeroRetirosHumano = NumRetirosHumano FROM TipoCuentaAhorro TC WHERE TC.id = @TipoCuentaAhorroId
+		SELECT @NumeroRetirosAutomatico  = NumRetirosAutomatico FROM TipoCuentaAhorro TC WHERE TC.id = @TipoCuentaAhorroId
+		SELECT @MultaNumRetirosCH  = ComisionHumano FROM TipoCuentaAhorro TC WHERE TC.id = @TipoCuentaAhorroId
+		SELECT @Interes = T.Interes FROM TipoCuentaAhorro  T WHERE T.id = @TipoCuentaAhorroId
 		
 
 		SET TRANSACTION ISOLATION LEVEL READ COMMITTED
-
 		BEGIN TRANSACTION TSaveCerrEst
 
 			DECLARE @EstadoDeCuentaID INT
@@ -53,20 +59,50 @@ BEGIN
 
 			SELECT  @SaldoFinal = @OutSaldoFinal
 
-			IF(@OutNumRetirosHumano > (SELECT NumRetirosHumano FROM TipoCuentaAhorro TC WHERE TC.id = @TipoCuentaAhorroId) )
+			DECLARE @OutMovimientoIdMov INT ,@OutResultCodeMov INT, @OutNuevoSaldo MONEY
+			IF(@OutNumRetirosHumano > @NumeroRetirosHumano)	--Multa por retiros cajero humano.
 				BEGIN
-					SELECT @SaldoFinal = @SaldoFinal - (SELECT ComisionHumano FROM TipoCuentaAhorro TC WHERE TC.id = @TipoCuentaAhorroId)
+					EXEC	[dbo].[InsertarMovimientos] 
+							@CuentaId
+							,8
+							,@MultaNumRetirosCH
+							,@inFechaFin
+							,'Multa por retiro cajero humano'
+							,@OutMovimientoIdMov
+							,@OutResultCodeMov
+							,@OutNuevoSaldo
+
+					SET @SaldoFinal = @OutNuevoSaldo
 				END;
 
-			IF(@OutNumRetirosCajero > (SELECT NumRetirosAutomatico FROM TipoCuentaAhorro TC WHERE TC.id = @TipoCuentaAhorroId) )
+			IF(@OutNumRetirosCajero >  @NumeroRetirosAutomatico)	--Multas por retiro cajero automatico.
 				BEGIN
-					SELECT @SaldoFinal = @SaldoFinal - (SELECT ComisionAutomatico FROM TipoCuentaAhorro TC WHERE TC.id = @TipoCuentaAhorroId)
+					EXEC	[dbo].[InsertarMovimientos] 
+							@CuentaId
+							,9
+							,@MultaNumRetirosCA
+							,@inFechaFin
+							,'Multa por retiro cajero humano'
+							,@OutMovimientoIdMov
+							,@OutResultCodeMov
+							,@OutNuevoSaldo
+
+					SET	@SaldoFinal = @OutNuevoSaldo
 				END;
 			IF(@SaldoFinal < @SaldoMin) -- Multa por saldo minimo
 				BEGIN
-					SELECT @SaldoFinal = @SaldoFinal - @MultaSaldoMin
+					SET @SaldoFinal = @SaldoFinal - @MultaSaldoMin
+					UPDATE dbo.CuentaAhorro --Solucion provisional
+					SET Saldo = @SaldoFinal
+					WHERE NumeroCuenta = @inCuentaCierra
 				END;
-
+			IF(@SaldoFinal > @SaldoMin) -- Intereses
+				BEGIN 
+					SET @SaldoFinal = @SaldoFinal + dbo.CalcularInteres(@SaldoFinal,@Interes)
+					UPDATE dbo.CuentaAhorro--No existe un movimiento para actualizar el interes
+					SET Saldo = @SaldoFinal
+					WHERE NumeroCuenta = @inCuentaCierra
+				END;
 			--Se actualiza el movimiento en la base de datos
 			UPDATE dbo.EstadoCuenta
 			SET SaldoFinal = @SaldoFinal

@@ -8,22 +8,28 @@ SET @xmlData = (
 		AS xmlData
 		)
 
+--Declaracion de variables
 DECLARE @FechasProcesar TABLE (Sec int identity (1,1), Fecha date)		--Tabla de las fechas a procesar
-INSERT @FechasProcesar(Fecha)											--Se inserta las fechas
-SELECT ref.value('@Fecha', 'date')										--Se seleccionan las fechas obtenidas del xml
-FROM @xmlData.nodes('Operaciones/FechaOperacion') AS xmlData(ref)		
-
 DECLARE @lo int = 1, @hi int, @fechaOperacion date								--Variable lo, hi y fecha operacion
 DECLARE @TablaFecha XML
 DECLARE @CuentaCierra int
 DECLARE @DiaCierreEC date
-	
 
+--Asignacion de valores a las variables
+INSERT @FechasProcesar(Fecha)											--Tabla con las fechas de operacion del xml
+SELECT ref.value('@Fecha', 'date')										
+FROM @xmlData.nodes('Operaciones/FechaOperacion') AS xmlData(ref)			
 SELECT @hi = max(Sec) from @FechasProcesar
+
 WHILE @lo <= @hi
 BEGIN
-	SELECT @FechaOperacion=F.Fecha FROM @FechasProcesar F WHERE F.sec=@lo	
-	SELECT @TablaFecha = xmlData.ref.query('.') FROM @xmlData.nodes('Operaciones/FechaOperacion') AS xmlData(ref) WHERE ref.value('@Fecha','date') = @FechaOperacion --SE GUARDA EN @TablaFecha LA TABLA ACTUAL A PROCESAR.
+	SELECT @FechaOperacion=F.Fecha FROM @FechasProcesar F WHERE F.sec=@lo	--Fecha de operacion actual
+
+	--SE GUARDA EN @TablaFecha LA TABLA ACTUAL A PROCESAR.
+	SELECT @TablaFecha = xmlData.ref.query('.') 
+	FROM @xmlData.nodes('Operaciones/FechaOperacion') AS xmlData(ref) 
+	WHERE ref.value('@Fecha','date') = @FechaOperacion 
+
 --SE PROCESA LA  INSERCION DE USUARIOS
 	INSERT INTO Usuario(
 		NombreUsuario
@@ -116,19 +122,6 @@ BEGIN
 	LEFT JOIN Beneficiarios B on B.NumeroCuenta = ref.value('@NumeroCuenta', 'int') AND P.ValorDocIdentidad = ref.value('@ValorDocumentoIdentidadBeneficiario', 'int')
 	WHERE B.NumeroCuenta IS NULL
 
---ESTADOS DE CUENTA DE LA FECHA DE OPERACION
-	--Se declaran las variables
-	DECLARE @CuentasCierran TABLE(sec int identity(1,1), codigocuenta varchar (20))	--Tabla con las cuentas que se cierran
-	DECLARE @lo1 int, @hi1 int							
-
-	--Se le asignan valores
-	SELECT @lo1 = min(Sec), @hi1 = max(Sec) from @CuentasCierran
-
-	--Se insertan valores en la tabla de @CuentasCierran
-	INSERT @CuentasCierran(codigocuenta)
-	SELECT ref.value('@NumeroCuenta','int') 
-	FROM @TablaFecha.nodes('FechaOperacion/Cuenta') AS xmlData(ref)
-
 --SE PROCESAN LOS MOVIMIENTOS DE LA CUENTA
 	INSERT INTO MovimientoCuentaAhorro(
 			Fecha
@@ -149,7 +142,20 @@ BEGIN
 	FROM @TablaFecha.nodes('FechaOperacion/Movimientos') AS xmlData(ref)
 	INNER JOIN CuentaAhorro C ON C.NumeroCuenta = ref.value('@CodigoCuenta', 'int')
 
---INICIO WHILE ESTADO CUENTA
+--Tablas con cierre de las cuentas.
+	--Se declaran las variables
+	DECLARE @CuentasCierran TABLE(sec int identity(1,1), codigocuenta varchar (20))	--Tabla con las cuentas que se cierran
+	DECLARE @lo1 int, @hi1 int														--Contadores
+
+	--Se le asignan valores
+	SELECT @lo1 = min(Sec), @hi1 = max(Sec) from @CuentasCierran
+
+	--Se insertan valores en la tabla de @CuentasCierran
+	INSERT @CuentasCierran(codigocuenta)
+	SELECT ref.value('@NumeroCuenta','int') 
+	FROM @TablaFecha.nodes('FechaOperacion/Cuenta') AS xmlData(ref)
+
+--INICIO WHILE CIERRE ESTADO CUENTA
 	SELECT @lo1=min(sec), @hi1=max(sec) FROM @CuentasCierran
 	WHILE @lo1 <= @hi1
 		BEGIN 
@@ -185,19 +191,20 @@ BEGIN
 			--FROM CuentaAhorro CA
 			--WHERE CA.NumeroCuenta = @CuentaCierra
 			SET @LO1 = @LO1 + 1
-		END
+		END;
 --FIN WHILE 
 
 	DELETE @CuentasCierran	
 	SET @lo = @lo + 1
 END;
+
 --SELECT * FROM Usuario
 --SELECT * FROM UsuarioPuedeVer
 --SELECT * FROM Persona
 --SELECT * FROM Beneficiarios
 --SELECT * FROM CuentaAhorro
 --SELECT * FROM EstadoCuenta
-SELECT * FROM MovimientoCuentaAhorro
+--SELECT * FROM MovimientoCuentaAhorro
 
 --DELETE Usuario
 --DELETE UsuarioPuedeVer
@@ -206,5 +213,3 @@ SELECT * FROM MovimientoCuentaAhorro
 --DELETE Beneficiarios
 --DELETE EstadoCuenta
 --DELETE MovimientoCuentaAhorro	
-
---SELECT  * FROM EstadoCuenta E WHERE E.NumeroCuenta = 11336076
