@@ -10,7 +10,7 @@ SET @xmlData = (
 
 --Declaracion de variables
 DECLARE @FechasProcesar TABLE (Sec int identity (1,1), Fecha date)		--Tabla de las fechas a procesar
-DECLARE @lo int = 1, @hi int, @fechaOperacion date								--Variable lo, hi y fecha operacion
+DECLARE @lo int = 1, @hi int, @fechaOperacion date						--Variable lo, hi y fecha operacion
 DECLARE @TablaFecha XML
 DECLARE @CuentaCierra int
 DECLARE @DiaCierreEC date
@@ -63,7 +63,8 @@ BEGIN
 		,FechaNacimiento
 		,Telefono1
 		,Telefono2
-		,TipoDocIdentidadid	
+		,TipoDocIdentidadid
+		,Usuarioid
 	)
 	SELECT	ref.value('@Nombre', 'varchar(100)')
 			,ref.value('@ValorDocumentoIdentidad', 'int')
@@ -72,7 +73,9 @@ BEGIN
 			,ref.value('@Telefono1', 'int')
 			,ref.value('@Telefono2', 'int')
 			,ref.value('@TipoDocuIdentidad', 'int')
+			,U.id
 	FROM @TablaFecha.nodes('FechaOperacion/Persona') AS xmlData(ref) 
+	LEFT JOIN Usuario U ON U.ValorDocIdentidad = ref.value('@ValorDocumentoIdentidad', 'int')
 
 --SE PROCESAN LAS CUENTAS
 	INSERT INTO CuentaAhorro (
@@ -160,7 +163,7 @@ BEGIN
 				,@OutMovimientoId OUTPUT
 				,@OutResultCode OUTPUT
 
-			----Se inserta estado de cuenta para el nuevo mes
+			--Se inserta estado de cuenta para el nuevo mes
 			INSERT INTO EstadoCuenta(
 				CuentaAhorroid
 				,NumeroCuenta
@@ -172,7 +175,7 @@ BEGIN
 			SELECT	CA.id
 					,Ca.NumeroCuenta
 					,DATEADD(DAY, 1, @FechaFin)
-					,'2020-08-31'--DATEADD(DAY,-1, DATEADD(MONTH, 1, @FechaFin))--Solucion Provisional
+					,DATEADD(DAY,-1, DATEADD(MONTH, 1, @FechaFin))--Solucion Provisional
 					,CA.Saldo
 					,0
 			FROM CuentaAhorro CA
@@ -186,20 +189,19 @@ BEGIN
 	SET @lo = @lo + 1
 END;
 
---SELECT * FROM Usuario
---SELECT * FROM UsuarioPuedeVer
---SELECT * FROM Persona
---SELECT * FROM Beneficiarios
---SELECT * FROM CuentaAhorro
+SELECT * FROM Usuario
+SELECT * FROM UsuarioPuedeVer
+SELECT * FROM Persona
+SELECT * FROM Beneficiarios
+SELECT * FROM CuentaAhorro
 SELECT * FROM EstadoCuenta
---SELECT * FROM MovimientoCuentaAhorro
+SELECT * FROM MovimientoCuentaAhorro
 
-SELECT * FROM EstadoCuenta WHERE NumeroCuenta = 11845847
-SELECT * FROM [dbo].[MovimientoCuentaAhorro] INNER JOIN CuentaAhorro C ON C.NumeroCuenta = 11845847 WHERE CuentaAhorroid = C.id
-DELETE Usuario
-DELETE UsuarioPuedeVer
-DELETE Beneficiarios
-DELETE EstadoCuenta
-DELETE MovimientoCuentaAhorro
-DELETE CuentaAhorro
-DELETE Persona
+--DELETE Usuario
+--DELETE UsuarioPuedeVer
+--DELETE EstadoCuenta
+--DELETE MovimientoCuentaAhorro
+--DELETE CuentaAhorro
+--DELETE Persona
+--DELETE Beneficiarios
+
