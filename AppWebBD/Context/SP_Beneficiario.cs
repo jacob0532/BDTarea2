@@ -25,6 +25,9 @@ namespace AppWebBD.Context
                 while (dr.Read())
                 {
                     var beneficiario = new Beneficiarios();
+                    beneficiario.id = Convert.ToInt32(dr["id"]);
+                    beneficiario.Personaid = Convert.ToInt32(dr["Personaid"]);
+                    beneficiario.CuentaAhorroid = Convert.ToInt32(dr["CuentaAhorroid"]);
                     beneficiario.NumeroCuenta = Convert.ToInt32(dr["NumeroCuenta"]);
                     beneficiario.ValorDocumentoIdentidadBeneficiario = Convert.ToInt32(dr["ValorDocumentoIdentidadBeneficiario"]);
                     beneficiario.ParentezcoId = Convert.ToInt32(dr["ParentezcoId"]);
@@ -55,7 +58,9 @@ namespace AppWebBD.Context
                 SqlDataReader dr = cmd.ExecuteReader();
                 while (dr.Read())
                 {
-                   
+                    beneficiario.id = Convert.ToInt32(dr["id"]);
+                    beneficiario.Personaid = Convert.ToInt32(dr["Personaid"]);
+                    beneficiario.CuentaAhorroid = Convert.ToInt32(dr["CuentaAhorroid"]);
                     beneficiario.NumeroCuenta = Convert.ToInt32(dr["NumeroCuenta"]);
                     beneficiario.ValorDocumentoIdentidadBeneficiario = Convert.ToInt32(dr["ValorDocumentoIdentidadBeneficiario"]);
                     beneficiario.ParentezcoId = Convert.ToInt32(dr["ParentezcoId"]);
@@ -71,13 +76,13 @@ namespace AppWebBD.Context
             else
                 return null;
         }
-        public void EliminarBeneficiario(int? valorDocumentoBeneficiario)
+        public void EliminarBeneficiario(int? id)
         {
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 SqlCommand cmd = new SqlCommand("SP_EliminarBeneficiario", con);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@ValorDocumentoIdentidadBeneficiario", valorDocumentoBeneficiario);
+                cmd.Parameters.AddWithValue("@inId", id);
                 con.Open();
                 cmd.ExecuteNonQuery();
                 con.Close();
@@ -88,14 +93,18 @@ namespace AppWebBD.Context
         {
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                SqlCommand cmd = new SqlCommand("SP_AgregarBeneficiario", con);
+                System.Diagnostics.Debug.WriteLine("A veteer" + beneficiario.Personaid);
+                SqlCommand cmd = new SqlCommand("InsertarBeneficiarios", con);
                 cmd.CommandType = CommandType.StoredProcedure;
-
+                cmd.Parameters.AddWithValue("@inPersonaId", beneficiario.Personaid);
+                cmd.Parameters.AddWithValue("@inCuentaAhorroId", beneficiario.CuentaAhorroid);
                 cmd.Parameters.AddWithValue("@inNumeroCuenta", beneficiario.NumeroCuenta);
-                cmd.Parameters.AddWithValue("@inValorDocIdentidadBeneficiario", beneficiario.ValorDocumentoIdentidadBeneficiario);
+                cmd.Parameters.AddWithValue("@inValorDocumentoIdentidadBeneficiario", beneficiario.ValorDocumentoIdentidadBeneficiario);
                 cmd.Parameters.AddWithValue("@inParentezcoId", beneficiario.ParentezcoId);
                 cmd.Parameters.AddWithValue("@inPorcentaje", beneficiario.Porcentaje);
-                
+                cmd.Parameters.AddWithValue("@OutMovimientoId", 0);
+                cmd.Parameters.AddWithValue("@OutResultCode", 0);
+
 
                 con.Open();
                 cmd.ExecuteNonQuery();
@@ -103,19 +112,19 @@ namespace AppWebBD.Context
             }
 
         }
-        public void EditarBeneficiario(Beneficiarios beneficiario, int cedulaAnterior)
+        public void EditarBeneficiario(Beneficiarios beneficiario) //Recibe Id, personaId, CuentaAhorroId
         {
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                SqlCommand cmd = new SqlCommand("SP_ActualizarBeneficiario", con); 
+                SqlCommand cmd = new SqlCommand("EditarBeneficiario", con); 
                 cmd.CommandType = CommandType.StoredProcedure;
-
+                cmd.Parameters.AddWithValue("@inId", beneficiario.id);
                 cmd.Parameters.AddWithValue("@inNumeroCuenta", beneficiario.NumeroCuenta);
-                cmd.Parameters.AddWithValue("@inValorDocumentoIdentidadBeneficiario", cedulaAnterior);
-                cmd.Parameters.AddWithValue("@inNuevoDocumentoIdentidad", beneficiario.ValorDocumentoIdentidadBeneficiario);
+                cmd.Parameters.AddWithValue("@inValorDocumentoIdentidadBeneficiario", beneficiario.ValorDocumentoIdentidadBeneficiario);
                 cmd.Parameters.AddWithValue("@inParentezcoId", beneficiario.ParentezcoId);
                 cmd.Parameters.AddWithValue("@inPorcentaje", beneficiario.Porcentaje);
-
+                cmd.Parameters.AddWithValue("@outBeneficiarioId", 0);
+                cmd.Parameters.AddWithValue("@OutResultCode", 0);
                 con.Open();
                 cmd.ExecuteNonQuery();
                 con.Close();

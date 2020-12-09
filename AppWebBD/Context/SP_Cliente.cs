@@ -9,7 +9,7 @@ namespace AppWebBD.Context
     public class SP_Cliente
     {
         string connectionString = "Data Source=LAPTOP-140FDP4P;Initial Catalog=ProyectoBD1;Integrated Security=true;";//Aqui Solo cambiar el nombre del data source si se cambia de BD
-        public Cliente SeleccionarClientePorCedula(int? Usuarioid) //El signo de pregunta sirve para generar un error si el contenido es NULL
+        public Cliente SeleccionarClientePorCedula(int? cedula) //El signo de pregunta sirve para generar un error si el contenido es NULL
         {
             var cliente = new Cliente();
 
@@ -18,7 +18,9 @@ namespace AppWebBD.Context
                 SqlCommand cmd = new SqlCommand("SeleccionarPersona", con);
                 cmd.CommandType = CommandType.StoredProcedure;
 
-                cmd.Parameters.AddWithValue("@inUsuarioid", Usuarioid);
+                cmd.Parameters.AddWithValue("@inValorDocIdentidad", cedula);
+                cmd.Parameters.AddWithValue("@outPersonaId", 0);
+                cmd.Parameters.AddWithValue("@OutResultCode", 0);
 
                 con.Open();
                 SqlDataReader dr = cmd.ExecuteReader();
@@ -32,8 +34,6 @@ namespace AppWebBD.Context
                     cliente.Telefono1 = Convert.ToInt32(dr["Telefono1"]);
                     cliente.Telefono2 = Convert.ToInt32(dr["Telefono2"]);
                     cliente.TipoDocIdentidadid = Convert.ToInt32(dr["TipoDocIdentidadid"]);
-                    cliente.Usuarioid = Convert.ToInt32(dr["Usuarioid"]);
-
                 }
                 con.Close();
             }

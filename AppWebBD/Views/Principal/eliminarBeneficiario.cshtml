@@ -5,39 +5,56 @@
     Layout = "~/Views/Shared/_LayoutUsuario.cshtml";
 }
 
-<h1>Eliminar Beneficiario</h1>
+<h1>eliminarBeneficiario</h1>
 
-
-<br />
+<h3>Are you sure you want to delete this?</h3>
 <div>
-    <h4>Beneficiario</h4>
+    <h4>Beneficiarios</h4>
     <hr />
     <dl class="row">
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.NumeroCuenta)
+            @Html.DisplayNameFor(model => model.id):
         </dt>
-        <dd class="col-12">
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.id)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Personaid):
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Personaid)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.CuentaAhorroid):
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.CuentaAhorroid)
+        </dd>
+        <dt class="col-sm-2">
+            Numero de Cuenta:
+        </dt>
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.NumeroCuenta)
         </dd>
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ValorDocumentoIdentidadBeneficiario)
+            Identidad:
         </dt>
-        <dd class="col-12">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.ValorDocumentoIdentidadBeneficiario)
         </dd>
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ParentezcoId)
+            Parentesco:
         </dt>
-        <dd class="col-12">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.ParentezcoId)
         </dd>
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Porcentaje)
+            @Html.DisplayNameFor(model => model.Porcentaje):
         </dt>
-        <dd class="col-12">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Porcentaje)
         </dd>
     </dl>
-    @Html.ActionLink("Eliminar", "eliminarConfirmed", new { ValorDocumentoIdentidadBeneficiario = Model.ValorDocumentoIdentidadBeneficiario, numeroCuenta = Model.NumeroCuenta })
+    @Html.ActionLink("Eliminar", "eliminarConfirmed", new {id = Model.id,numeroCuenta = Model.NumeroCuenta})
 </div>
 @Html.ActionLink("<--Volver", "volverIndex", new { })

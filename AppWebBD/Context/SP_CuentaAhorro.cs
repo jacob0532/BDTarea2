@@ -19,7 +19,8 @@ namespace AppWebBD.Context
                 cmd.CommandType = CommandType.StoredProcedure;
 
                 cmd.Parameters.AddWithValue("@inPersonaid", Personaid);
-
+                cmd.Parameters.AddWithValue("@outCuentaAhorroId",0);
+                cmd.Parameters.AddWithValue("@OutResultCode", 0);
                 con.Open();
                 SqlDataReader dr = cmd.ExecuteReader();
                 while (dr.Read())

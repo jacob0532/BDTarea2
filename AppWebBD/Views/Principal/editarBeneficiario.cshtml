@@ -14,6 +14,21 @@
         <form asp-action="editarBeneficiario">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
+                <label asp-for="id" class="control-label"></label>
+                <input asp-for="id" class="form-control" readonly />
+                <span asp-validation-for="id" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Personaid" class="control-label"></label>
+                <input asp-for="Personaid" class="form-control" readonly />
+                <span asp-validation-for="Personaid" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CuentaAhorroid" class="control-label"></label>
+                <input asp-for="CuentaAhorroid" class="form-control" readonly />
+                <span asp-validation-for="CuentaAhorroid" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label asp-for="NumeroCuenta" class="control-label"></label>
                 <input asp-for="NumeroCuenta" class="form-control" readonly />
                 <span asp-validation-for="NumeroCuenta" class="text-danger"></span>

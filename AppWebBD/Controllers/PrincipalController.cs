@@ -18,12 +18,14 @@ namespace AppWebBD.Controllers
         SP_EstadoCuenta SP_ProcedureEstadoCuenta = new SP_EstadoCuenta();
         SP_VerificarPorcentajeBeneficiarios SP_ProcedureVerificarPorcentajeBeneficiarios = new SP_VerificarPorcentajeBeneficiarios();
         SP_TipoCuentaAhorro SP_ProcedureTipoCuentaAhorro = new SP_TipoCuentaAhorro();
+        SP_CuentaObjetivo SP_ProcedureCuentaObjetivo = new SP_CuentaObjetivo();
+        SP_Movimiento SP_ProcedureMovimiento = new SP_Movimiento();
         public static Usuario usuarioFijo { get; set; } = null;
         public static int cedulaAnterior { get; set; } = 0;
+        public static int auxIS { get; set; }  = 0;
         public IActionResult Index()
         {
-            List<Cliente> clienteList = SP_ProcedureCliente.SeleccionarClientes().ToList();
-            return View(clienteList);
+            return View();
         }
         public ActionResult Details(int ValorDocIdentidad)
         {
@@ -44,7 +46,7 @@ namespace AppWebBD.Controllers
         {
             Usuario usuario = SP_ProcedureUsuario.verUsuario(user, pass);
             usuarioFijo = usuario;
-            if (usuario.User != null)
+            if (usuario.NombreUsuario != null)
             {
                 return CuentasAhorro(usuario);
             }
@@ -60,7 +62,8 @@ namespace AppWebBD.Controllers
         {
             if (usuario.EsAdmi == 0)
             {
-                List<CuentaAhorro> cuentaList = SP_ProcedureCuentaAhorro.SeleccionarCuentaPorCedula(usuario.ValorDocIdentidad).ToList();
+                Cliente cliente = SP_ProcedureCliente.SeleccionarClientePorCedula(usuario.ValorDocIdentidad);
+                List<CuentaAhorro> cuentaList = SP_ProcedureCuentaAhorro.SeleccionarCuentaPorCedula(cliente.id).ToList();
                 return View("CuentasAhorro", cuentaList);
             }
             else
@@ -91,7 +94,7 @@ namespace AppWebBD.Controllers
         }
         public ActionResult volverIndex()
         {
-            return LoginConfirmed(usuarioFijo.User, usuarioFijo.Pass);
+            return LoginConfirmed(usuarioFijo.NombreUsuario, usuarioFijo.Pass);
         }
         public ActionResult verEstadoDeCuenta(int numeroCuenta)
         {
@@ -104,7 +107,7 @@ namespace AppWebBD.Controllers
             tipoCuenta = SP_ProcedureTipoCuentaAhorro.SeleccionarMoneda(id, tipoCuenta);
             return View(tipoCuenta);
         }
-        public ActionResult agregarBeneficiario(int numeroCuenta)
+        public ActionResult agregarBeneficiario(int Personaid,int CuentaAhorroid, int numeroCuenta)
         {
             return View();
         }
@@ -145,11 +148,11 @@ namespace AppWebBD.Controllers
                 return NotFound();   
         }
         [HttpPost, ActionName("editarBeneficiario")]
-        public ActionResult editarBeneficiario(int ValorDocumentoIdentidadBeneficiario, [Bind]Beneficiarios beneficiario)
+        public ActionResult editarBeneficiario([Bind]Beneficiarios beneficiario)
         {
             if (ModelState.IsValid)
             {
-                SP_ProcedureBeneficiario.EditarBeneficiario(beneficiario, cedulaAnterior);
+                SP_ProcedureBeneficiario.EditarBeneficiario(beneficiario);
                 return RedirectToAction("volverIndex");
             }
             return NotFound();
@@ -162,11 +165,11 @@ namespace AppWebBD.Controllers
             else
                 return NotFound();
         }
-        public ActionResult eliminarConfirmed(int ValorDocumentoIdentidadBeneficiario,int numeroCuenta)
+        public ActionResult eliminarConfirmed(int id,int numeroCuenta)
         {
             try
             {
-                SP_ProcedureBeneficiario.EliminarBeneficiario(ValorDocumentoIdentidadBeneficiario);
+                SP_ProcedureBeneficiario.EliminarBeneficiario(id);
                 return verBeneficiarios(numeroCuenta);
             }
             catch
@@ -174,7 +177,68 @@ namespace AppWebBD.Controllers
                 return NotFound();
             }
         }
+        public ActionResult crearCuentaObjetivo(int CuentaAhorroid,int Saldo,int InteresesAcumulados)
+        {
+            return View();
+        }
 
+        [HttpPost, ActionName("crearCuentaObjetivo")]
+        public ActionResult crearCuentaObjetivo([Bind] CuentaObjetivo caObjetivo)
+        {
+            if (ModelState.IsValid)
+            {
+                SP_ProcedureCuentaObjetivo.AgregarCuentaObjetivo(caObjetivo);
+                return RedirectToAction("volverIndex");
+            }
+            return NotFound();
+        }
+        public ActionResult verCuentaObj(int cuentaAhorroId)
+        {
+            List<CuentaObjetivo> listaCO =  SP_ProcedureCuentaObjetivo.verCuentaObjetivo(cuentaAhorroId).ToList();
+            return View(listaCO);
+        }
+        public ActionResult editarCuentaObj(int id)
+        {
+            CuentaObjetivo cuentaObj = SP_ProcedureCuentaObjetivo.seleccionarCAObj(id);
+            if (cuentaObj != null)
+                return View();
+            else
+                return NotFound();
+        }
+        [HttpPost, ActionName("editarCuentaObj")]
+        public ActionResult editarCuentaObj([Bind] CuentaObjetivo cuentaObj)
+        {
+            if (ModelState.IsValid)
+            {
+                SP_ProcedureCuentaObjetivo.editarDescripcion(cuentaObj);
+                return RedirectToAction("volverIndex");
+            }
+            return NotFound();
+        }
+        public ActionResult desactivarCuentaObj(int id)
+        {
+            SP_ProcedureCuentaObjetivo.eliminarCuentaObj(id);
+            return RedirectToAction("volverIndex");
+        }
+        public ActionResult mostrarMovimientos(int EstadoCuentaid)
+        {
+            List<MovimientoCuentaAhorro> listaMov = SP_ProcedureMovimiento.MostrarMovimientos(EstadoCuentaid).ToList();
+            return View(listaMov);
+        }
+        public ActionResult movimientos(int EstadoCuentaid)
+        {
+            auxIS = EstadoCuentaid;
+            return View();
+        }
+        [HttpPost, ActionName("movimientoEspecifico")]
+        public ActionResult movimientoEspecifico(int EstadoCuentaid,string descripcion)
+        {
+            EstadoCuentaid = auxIS;
+            System.Diagnostics.Debug.WriteLine("a veeer" + descripcion);
+            System.Diagnostics.Debug.WriteLine("aaaaaaaaaA veeer" + EstadoCuentaid);
+            List<MovimientoCuentaAhorro> listaMov2 = SP_ProcedureMovimiento.MostrarMovimientosEspecificos(descripcion,EstadoCuentaid).ToList();
+            return View(listaMov2);
+        }
     }
 
 }
