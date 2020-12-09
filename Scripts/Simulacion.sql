@@ -174,7 +174,7 @@ BEGIN
 			)
 			SELECT	CA.id
 					,Ca.NumeroCuenta
-					,DATEADD(DAY, 1, @FechaFin)
+					,@FechaFin
 					,DATEADD(DAY,-1, DATEADD(MONTH, 1, @FechaFin))--Solucion Provisional
 					,CA.Saldo
 					,0
