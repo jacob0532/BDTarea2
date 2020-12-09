@@ -4,7 +4,7 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE PROCEDURE [dbo].[InsertarEstadosCuenta] 
+CREATE OR ALTER PROCEDURE [dbo] 
 	@inCuentaAhorroId INT
 	,@inNumeroCuenta INT
 	,@inFechaInicio DATE
@@ -23,14 +23,14 @@ BEGIN
 		--Se inicializan variables
 		SELECT @OutResultCode = 0
 		SELECT @SaldoFinal = 0
-		SELECT @FechaFin = DATEADD(month, 1, @inFechaInicio)
+		SELECT @FechaFin = DATEADD(DAY, -1,DATEADD(MONTH, 1, @inFechaInicio))
 
 		-- Validacion de paramentros de entrada
 		IF NOT EXISTS (SELECT 1 FROM dbo.CuentaAhorro C WHERE C.id = @inCuentaAhorroId)
-		BEGIN
-			SET @OutResultCode = 50001;	--No existe la cuenta
-			RETURN
-		END;
+			BEGIN
+				SET @OutResultCode = 50001;	--No existe la cuenta
+				RETURN
+			END;
 
 		SET TRANSACTION ISOLATION LEVEL READ COMMITTED
 
