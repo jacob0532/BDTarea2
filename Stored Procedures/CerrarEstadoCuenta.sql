@@ -76,9 +76,9 @@ BEGIN
 							,@MultaNumRetirosCH
 							,@inFechaFin
 							,'Multa por retiro cajero humano'
-							,@OutMovimientoIdMov
-							,@OutResultCodeMov
-							,@OutNuevoSaldo
+							,@OutMovimientoIdMov OUTPUT
+							,@OutResultCodeMov OUTPUT
+							,@OutNuevoSaldo OUTPUT
 
 					SET @SaldoFinal = @OutNuevoSaldo
 				END;
@@ -91,9 +91,9 @@ BEGIN
 							,@MultaNumRetirosCA
 							,@inFechaFin
 							,'Multa por retiro cajero humano'
-							,@OutMovimientoIdMov
-							,@OutResultCodeMov
-							,@OutNuevoSaldo
+							,@OutMovimientoIdMov OUTPUT
+							,@OutResultCodeMov OUTPUT
+							,@OutNuevoSaldo OUTPUT
 
 					SET	@SaldoFinal = @OutNuevoSaldo
 				END;
@@ -108,10 +108,17 @@ BEGIN
 
 			IF(@SaldoFinal > @SaldoMin) -- Intereses
 				BEGIN 
-					SET @SaldoFinal = @SaldoFinal + dbo.CalcularInteres(@SaldoFinal,@Interes)
-					UPDATE dbo.CuentaAhorro--No existe un movimiento para actualizar el interes
-					SET Saldo = @SaldoFinal
-					WHERE NumeroCuenta = @inCuentaCierra
+					DECLARE @InteresesGanados MONEY = @SaldoFinal + dbo.CalcularInteres(@SaldoFinal,@Interes)
+					EXEC	[dbo].[InsertarMovimientos] 
+							@CuentaId
+							,7
+							,@InteresesGanados
+							,@inFechaFin
+							,'Intereses del mes sobre saldo MInimo'
+							,@OutMovimientoIdMov OUTPUT
+							,@OutResultCodeMov OUTPUT
+							,@OutNuevoSaldo OUTPUT
+					SET @SaldoFinal = @OutNuevoSaldo
 				END;
 			--Se actualiza el movimiento en la base de datos
 			UPDATE dbo.EstadoCuenta
