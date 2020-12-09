@@ -231,12 +231,10 @@ namespace AppWebBD.Controllers
             return View();
         }
         [HttpPost, ActionName("movimientoEspecifico")]
-        public ActionResult movimientoEspecifico(int EstadoCuentaid,string descripcion)
+        public ActionResult movimientoEspecifico(int EstadoCuentaid, string descripcion)
         {
             EstadoCuentaid = auxIS;
-            System.Diagnostics.Debug.WriteLine("a veeer" + descripcion);
-            System.Diagnostics.Debug.WriteLine("aaaaaaaaaA veeer" + EstadoCuentaid);
-            List<MovimientoCuentaAhorro> listaMov2 = SP_ProcedureMovimiento.MostrarMovimientosEspecificos(descripcion,EstadoCuentaid).ToList();
+            List<MovimientoCuentaAhorro> listaMov2 = SP_ProcedureMovimiento.MostrarMovimientosEspecificos(descripcion, EstadoCuentaid).ToList();
             return View(listaMov2);
         }
     }

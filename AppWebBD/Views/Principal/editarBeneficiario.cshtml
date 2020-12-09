@@ -40,7 +40,17 @@
             </div>
             <div class="form-group">
                 <label asp-for="ParentezcoId" class="control-label"></label>
-                <input asp-for="ParentezcoId" class="form-control" />
+                <select asp-for="ParentezcoId" class="form-control">
+                    <option value=1>Padre</option>
+                    <option value=2>Madre</option>
+                    <option value=3>Hijo</option>
+                    <option value=4>Hija</option>
+                    <option value=5>Hermano</option>
+                    <option value=6>Hermana</option>
+                    <option value=7>amigo</option>
+                    <option value=8>amiga</option>
+                    <option value=9>Pareja</option>
+                </select>
                 <span asp-validation-for="ParentezcoId" class="text-danger"></span>
             </div>
             <div class="form-group">

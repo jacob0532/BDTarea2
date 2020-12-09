@@ -7,7 +7,6 @@
 
 <h1>Movimientos</h1>
 
-
 <table class="table">
     <thead>
         <tr>
@@ -27,7 +26,10 @@
                 @Html.DisplayNameFor(model => model.EstadoCuentaid)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.TipoMovimientoCuentaAhorrosid)
+                @Html.DisplayNameFor(model => model.Nombre)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TipoOperacion)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.CuentaAhorroid)
@@ -58,7 +60,10 @@
                     @Html.DisplayFor(modelItem => item.EstadoCuentaid)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.TipoMovimientoCuentaAhorrosid)
+                    @Html.DisplayFor(modelItem => item.Nombre)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TipoOperacion)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.CuentaAhorroid)
@@ -70,4 +75,5 @@
         }
     </tbody>
 </table>
+
 @Html.ActionLink("<--Volver", "volverIndex", new { })

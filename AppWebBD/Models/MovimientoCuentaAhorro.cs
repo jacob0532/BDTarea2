@@ -9,7 +9,8 @@ namespace AppWebBD.Models
         public long Monto { get; set; }
         public long NuevoSaldo { get; set; }
         public int EstadoCuentaid { get; set; }
-        public int TipoMovimientoCuentaAhorrosid { get; set; }
+        public string Nombre { get; set; }
+        public string TipoOperacion { get; set; }  //debito o credito
         public int CuentaAhorroid { get; set; }
         public string Descripcion { get; set; }
     }

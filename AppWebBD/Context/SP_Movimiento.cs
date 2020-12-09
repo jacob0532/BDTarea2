@@ -16,7 +16,9 @@ namespace AppWebBD.Context
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 SqlCommand cmd = new SqlCommand("SeleccionarMovimientos", con);
+                SqlCommand cmd2 = new SqlCommand("SeleccionarTipoMovimiento", con);
                 cmd.CommandType = CommandType.StoredProcedure;
+                cmd2.CommandType = CommandType.StoredProcedure;
 
                 cmd.Parameters.AddWithValue("@inEstadoCuentaid", estadoCuentaid);
                 cmd.Parameters.AddWithValue("@outMovimientoId", 0);
@@ -32,7 +34,8 @@ namespace AppWebBD.Context
                     movimiento.Monto = Convert.ToInt64(dr["Monto"]);
                     movimiento.NuevoSaldo = Convert.ToInt64(dr["NuevoSaldo"]);
                     movimiento.EstadoCuentaid = Convert.ToInt32(dr["EstadoCuentaid"]);
-                    movimiento.TipoMovimientoCuentaAhorrosid = Convert.ToInt32(dr["TipoMovimientoCuentaAhorroid"]);
+                    movimiento.Nombre = dr["Nombre"].ToString();
+                    movimiento.TipoOperacion = dr["TipoOperacion"].ToString();
                     movimiento.Descripcion = dr["Descripcion"].ToString();
                     movimientoLista.Add(movimiento);
                 }
@@ -64,7 +67,8 @@ namespace AppWebBD.Context
                     movimiento.Monto = Convert.ToInt64(dr["Monto"]);
                     movimiento.NuevoSaldo = Convert.ToInt64(dr["NuevoSaldo"]);
                     movimiento.EstadoCuentaid = Convert.ToInt32(dr["EstadoCuentaid"]);
-                    movimiento.TipoMovimientoCuentaAhorrosid = Convert.ToInt32(dr["TipoMovimientoCuentaAhorroid"]);
+                    movimiento.Nombre = dr["Nombre"].ToString();
+                    movimiento.TipoOperacion = dr["TipoOperacion"].ToString();
                     movimiento.Descripcion = dr["Descripcion"].ToString();
                     movimientoLista.Add(movimiento);
                 }
