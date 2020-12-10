@@ -108,7 +108,11 @@ BEGIN
 
 			IF(@SaldoFinal > @SaldoMin) -- Intereses
 				BEGIN 
-					DECLARE @InteresesGanados MONEY = @SaldoFinal + dbo.CalcularInteres(@SaldoFinal,@Interes)
+					DECLARE @InteresesGanados MONEY =dbo.CalcularInteres(@SaldoFinal,@Interes)
+					IF(@inCuentaCierra = 11887777)
+						BEGIN
+							SELECT @InteresesGanados
+						END;
 					EXEC	[dbo].[InsertarMovimientos] 
 							@CuentaId
 							,7
