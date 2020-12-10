@@ -4,7 +4,7 @@ DECLARE @xmlData XML
 -- Nota: cambiar el path del from C:\Users\yeico\Desktop\BDTarea2\XML\catalogos.xml
 SET @xmlData = (
 		SELECT *
-		FROM OPENROWSET(BULK 'C:\Users\dvarg\Desktop\TEC\2020\Segundo Semestre\Bases de datos\Proyectos\Proyecto 2\BDTarea2\XML\Datos_Tarea_2.xml', SINGLE_BLOB) 
+		FROM OPENROWSET(BULK 'C:\Users\yeico\Desktop\BDTarea2\XML\Datos_Tarea_2.xml', SINGLE_BLOB) 
 		AS xmlData
 		)
 
@@ -189,13 +189,13 @@ BEGIN
 	SET @lo = @lo + 1
 END;
 
-SELECT * FROM Usuario
-SELECT * FROM UsuarioPuedeVer
-SELECT * FROM Persona
-SELECT * FROM Beneficiarios
-SELECT * FROM CuentaAhorro
-SELECT * FROM EstadoCuenta
-SELECT * FROM MovimientoCuentaAhorro
+--SELECT * FROM Usuario
+--SELECT * FROM UsuarioPuedeVer
+--SELECT * FROM Persona
+--SELECT * FROM Beneficiarios
+--SELECT * FROM CuentaAhorro
+--SELECT * FROM EstadoCuenta
+--SELECT * FROM MovimientoCuentaAhorro
 
 --DELETE Usuario
 --DELETE UsuarioPuedeVer
