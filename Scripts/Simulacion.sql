@@ -164,6 +164,8 @@ BEGIN
 				,@OutResultCode OUTPUT
 
 			--Se inserta estado de cuenta para el nuevo mes
+			DECLARE @FechaInicioEC DATE = DATEADD(DAY, 1, @FechaFin)
+			DECLARE @FechaFinEC DATE = DATEADD(DAY,-1, DATEADD(MONTH, 1, @FechaInicioEC))
 			INSERT INTO EstadoCuenta(
 				CuentaAhorroid
 				,NumeroCuenta
@@ -174,8 +176,8 @@ BEGIN
 			)
 			SELECT	CA.id
 					,Ca.NumeroCuenta
-					,@FechaFin
-					,DATEADD(DAY,-1, DATEADD(MONTH, 1, @FechaFin))--Solucion Provisional
+					,@FechaInicioEC
+					,@FechaFinEC
 					,CA.Saldo
 					,0
 			FROM CuentaAhorro CA
