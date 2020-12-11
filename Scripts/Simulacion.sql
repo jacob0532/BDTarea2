@@ -23,8 +23,8 @@ DECLARE @CuentaCierra INT			--Cuenta que cierra en la fecha de operacion
 
 --Tablas con cierre de las cuentas.
 DECLARE @CuentasCierran TABLE (
-	sec INT identity(1, 1),
-	codigocuenta VARCHAR(20)
+	Sec INT identity(1, 1),
+	EstadoCuentaId INT
 	)
 
 --Tabla de movimientos
@@ -36,7 +36,24 @@ DECLARE @TablaMovimientos TABLE(
 	Descripcion VARCHAR(200),
 	CuentaAhorroId INT
 	)
-	
+
+--Variables para insertar movimientos
+DECLARE	@CuentaId INT,
+		@TipoMovimientos INT,
+		@Monto MONEY,
+		@Fecha DATE,
+		@Descripcion VARCHAR(200),
+		@OutMovimientoIdMov INT,
+		@OutResultCodeMov INT,
+		@OutNuevoSaldoMov INT
+
+--Output del SP de cerrar cuenta. 
+DECLARE	@OutMovimientoIdCerrarCuenta INT, 
+		@OutResultCodeCerrarCuenta INT
+
+--Fecha fin estado de cuenta anterior.
+DECLARE @FechaInicioEC DATE
+
 --Contadores insertar datos XML
 DECLARE @lo INT = 1,
 		@hi INT	
@@ -52,16 +69,6 @@ Declare @lo2 INT,
 --Se le inicializa el contador @hi
 SELECT @hi = max(Sec)
 FROM @FechasProcesar
-
---Variables para insertar movimientos
-DECLARE	@CuentaId INT,
-		@TipoMovimientos INT,
-		@Monto MONEY,
-		@Fecha DATE,
-		@Descripcion VARCHAR(200),
-		@OutMovimientoIdMov INT,
-		@OutResultCodeMov INT,
-		@OutNuevoSaldoMov INT
 
 SET NOCOUNT ON
 WHILE @lo <= @hi
@@ -211,49 +218,61 @@ BEGIN
 		END;
 	DELETE @TablaMovimientos -- Se elimina los datos de la tabla movimientos.
 
-	--Se insertan valores en la tabla de @CuentasCierran
-	INSERT @CuentasCierran (codigocuenta)
+	--Se insertan los estados de cuenta que cierran el día de la operacion actual en la tabla de @CuentasCierran
+	INSERT @CuentasCierran (EstadoCuentaId)
 	SELECT id
-	FROM CuentaAhorro
-	WHERE DATEDIFF(MONTH, FechaCreacion, @fechaOperacionActual) = 1
-			AND DATEDIFF(DAY, FechaCreacion, @fechaOperacionActual) < 31	
-
+	FROM EstadoCuenta
+	WHERE DATEADD(MONTH, 1 ,FechaInicio) = @fechaOperacionActual
 
 	--Se inicializan los contadores.
 	SELECT	@lo2 = MIN(Sec),
 			@hi2 = max(sec)
 	FROM @CuentasCierran
+
 	--Cierra los estados de cuenta que cierran en la fecha de operacion actual.
 	WHILE @lo2 <= @hi2
 		BEGIN
-			SELECT @CuentaCierra = sec 
+			--Id del estado de cuenta que cierra la fecha de operacion actual.
+			SELECT @CuentaCierra = EstadoCuentaId
 			FROM @CuentasCierran
-			WHERE sec = @lo2
+			WHERE sec =@lo2	
 
-			SELECT *, 
-			FROM @CuentasCierran 
-			WHERE sec = @lo2
-
+			--Cierra los estados de cuenta que cierran la fecha de operacion actual.
+			EXEC	[dbo].[CerrarEstadoCuenta]
+					@CuentaCierra,
+					@OutMovimientoIdCerrarCuenta OUTPUT, 
+					@OutResultCodeCerrarCuenta OUTPUT
 			
-			--INSERT INTO EstadoCuenta(
-			--	CuentaAhorroid
-			--	,NumeroCuenta
-			--	,FechaInicio
-			--	,FechaFin
-			--	,SaldoInicial
-			--	,SaldoFinal
-			--)
-			--SELECT	CA.id
-			--		,CA.NumeroCuenta
-			--		,@FechaFin
-			--		,DATEADD(DAY,1, DATEADD(month, 1, @FechaFin))--Solucion Provisional
-			--		,CA.Saldo
-			--		,0
-			--FROM CuentaAhorro CA
-			--WHERE CA.NumeroCuenta = @CuentaCierra
+			--SELECT @OutResultCodeCerrarCuenta
+
+			SELECT @FechaInicioEC = FechaFin
+			FROM [dbo].[EstadoCuenta]
+			WHERE id = @CuentaCierra
+
+			--Inserta el estado de cuenta del mes siguiente.	
+			INSERT INTO [dbo].[EstadoCuenta](
+				CuentaAhorroid
+				,NumeroCuenta
+				,FechaInicio
+				,FechaFin
+				,SaldoInicial
+				,SaldoFinal
+				,SaldoMinimo
+			)
+			SELECT	CA.id
+					,CA.NumeroCuenta
+					,DATEADD(DAY, 1, @FechaInicioEC)
+					,DATEADD(DAY,-1, DATEADD(month, 1, @FechaInicioEC))
+					,CA.Saldo
+					,0
+					,Ca.Saldo
+			FROM [dbo].[CuentaAhorro] CA
+			INNER JOIN [dbo].[EstadoCuenta] EC ON EC.id = @CuentaCierra
+			WHERE CA.id = EC.CuentaAhorroid
 			
 			SET @Lo2 = @Lo2 + 1
 		END;
+	DELETE @CuentasCierran
 
 	SET @lo = @lo + 1
 END;
@@ -262,9 +281,9 @@ END;
 --SELECT * FROM UsuarioPuedeVer
 --SELECT * FROM Persona
 --SELECT * FROM Beneficiarios
-SELECT * FROM CuentaAhorro
-	
-SELECT * FROM MovimientoCuentaAhorro
+--SELECT * FROM CuentaAhorro
+--SELECT * FROM EstadoCuenta 
+SELECT * FROM MovimientoCuentaAhorro --WHERE Descripcion  = 'Intereses del mes sobre saldo MInimo'
 
 --DELETE Usuario
 --DELETE UsuarioPuedeVer
