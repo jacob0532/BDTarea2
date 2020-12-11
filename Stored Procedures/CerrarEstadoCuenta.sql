@@ -1,16 +1,16 @@
 USE [ProyectoBD1]
 GO
+
 /****** Object:  StoredProcedure [dbo].[InsertarMovimientos]    Script Date: 12/1/2020 2:43:00 PM ******/
 SET ANSI_NULLS ON
 GO
+
 SET QUOTED_IDENTIFIER ON
 GO
-ALTER PROCEDURE [dbo].[CerrarEstadoCuenta] 
-	@inCuentaCierra INT
-	,@inFechaInicio DATE
-	,@inFechaFin DATE
-	,@OutMovimientoId INT OUTPUT
-	,@OutResultCode INT OUTPUT
+
+ALTER PROCEDURE [dbo].[CerrarEstadoCuenta] @inEstadoCuentaId INT,
+	@OutMovimientoId INT OUTPUT,
+	@OutResultCode INT OUTPUT
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -18,132 +18,87 @@ BEGIN
 	BEGIN TRY
 		-- Se declaran variables
 		DECLARE @SaldoFinal MONEY = 0
-		DECLARE @SaldoInicial MONEY
-		DECLARE @TipoCuentaAhorroId INT
-		DECLARE @CuentaId INT, @EstadoCuentaId INT
-		DECLARE @MultaSaldoMin MONEY, @SaldoMin MONEY
-		DECLARE @NumeroRetirosHumano INT, @NumeroRetirosAutomatico INT
-		DECLARE @MultaNumRetirosCH MONEY, @MultaNumRetirosCA MONEY
-		DECLARE @Interes MONEY
+		DECLARE @CuentaAhorroId INT,
+			@MultaSaldoMin MONEY, --Multa por el saldo minimo.
+			@SaldoMin MONEY, --Saldo minimo en la cuenta.
+			@NumeroRetirosHumano INT, --Cantidad de retiros maxima humano.
+			@NumeroRetirosAutomatico INT, --Cantidad de retiros maxima cajero automatico.
+			@MultaNumRetirosCH MONEY, --Multa por sobrepasar los retiros del cajero humano.
+			@MultaNumRetirosCA MONEY, --Multa por sobrepasar los retiros del cajero automatico.
+			@Interes MONEY --Intereses.
 
-		-- Se inicializan variables
-		SELECT @OutResultCode = 0	--Codigo de retorno
-		SELECT @SaldoInicial = Saldo FROM CuentaAhorro CA WHERE CA.NumeroCuenta = @inCuentaCierra
-		SELECT @CuentaId = Id FROM CuentaAhorro WHERE NumeroCuenta = @inCuentaCierra	--Id de la cuenta asociado al numero de cuenta.
-		SELECT @TipoCuentaAhorroId = CA.TipoCuentaId FROM CuentaAhorro CA WHERE CA.id = @CuentaId		--El tipo de cuenta de ahorro de la cuenta
-		--BUG
-		SELECT @EstadoCuentaId = id FROM EstadoCuenta EC WHERE EC.CuentaAhorroid = @CuentaId AND EC.FechaInicio = @inFechaInicio AND Ec.FechaFin = @inFechaFin	--El id del estado de cuenta
-		SELECT @MultaSaldoMin = T.MultaSaldoMin, @SaldoMin = T.SaldoMinimo FROM TipoCuentaAhorro T WHERE T.id = @TipoCuentaAhorroId --Multa de saldo minimo
-		SELECT @NumeroRetirosHumano = NumRetirosHumano FROM TipoCuentaAhorro TC WHERE TC.id = @TipoCuentaAhorroId
-		SELECT @NumeroRetirosAutomatico  = NumRetirosAutomatico FROM TipoCuentaAhorro TC WHERE TC.id = @TipoCuentaAhorroId
-		SELECT @MultaNumRetirosCH  = ComisionHumano FROM TipoCuentaAhorro TC WHERE TC.id = @TipoCuentaAhorroId
-		SELECT @Interes = T.Interes FROM TipoCuentaAhorro  T WHERE T.id = @TipoCuentaAhorroId
-		
-		IF (@CuentaId IS NULL )
-			BEGIN
-				SET @OutResultCode = 50017
-				RETURN
-			END;
+		--Se guarda en las variables los valores relacionados con el estado de cuenta.
+		SELECT @CuentaAhorroId = C.id,
+			@MultaSaldoMin = TC.MultaSaldoMin,
+			@NumeroRetirosHumano = TC.NumRetirosHumano,
+			@NumeroRetirosAutomatico = TC.NumRetirosAutomatico,
+			@MultaNumRetirosCH = TC.ComisionHumano,
+			@MultaNumRetirosCA = TC.ComisionAutomatico,
+			@Interes = TC.Interes,
+			@SaldoFinal = C.Saldo
+		FROM [dbo].[EstadoCuenta] EC
+		INNER JOIN [dbo].[CuentaAhorro] C ON C.id = EC.CuentaAhorroid
+		INNER JOIN [dbo].[TipoCuentaAhorro] TC ON TC.id = C.TipoCuentaId
+		WHERE EC.id = @inEstadoCuentaId
+
+		--Se obtiene el saldo minimo 
+		SELECT @SaldoMin = (
+				CASE 
+					WHEN MIN(NuevoSaldo) IS NULL
+						THEN @SaldoFinal
+					ELSE MIN(NuevoSaldo)
+					END
+				)
+		FROM MovimientoCuentaAhorro
+		WHERE EstadoCuentaid = @inEstadoCuentaId
+
+		IF (@SaldoMin IS NULL)
+			BEGIN 
+				SELECT @SaldoFinal
+				SELECT @SaldoMin
+			END
+		--Si la cuenta no existe
+		IF NOT EXISTS (
+				SELECT 1
+				FROM [dbo].[CuentaAhorro]
+				WHERE id = @CuentaAhorroId
+				)
+		BEGIN
+			SET @OutResultCode = 50017 --Codigo de retorno si la cuenta no existe.
+
+			RETURN
+		END;
 
 		SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+
 		BEGIN TRANSACTION TSaveCerrEst
 
-			DECLARE @EstadoDeCuentaID INT
-					,@OutNumRetirosHumano INT
-					,@OutNumRetirosCajero INT
-					,@OutSaldoFinal MONEY
-					,@OutMovimientoECId INT
-					,@OutResultCodeEC INT
+		--Se actualiza El saldo final y el saldo minimo.
+		UPDATE [dbo].[EstadoCuenta]
+		SET SaldoMinimo = @SaldoMin,
+			SaldoFinal = @SaldoFinal
+		WHERE Id = @inEstadoCuentaId
 
-			EXEC [dbo].[ProcesarMovimientos] 
-					@inCuentaCierra
-					,@inFechaInicio
-					,@inFechaFin
-					,@OutNumRetirosHumano OUTPUT
-					,@OutNumRetirosCajero OUTPUT
-					,@OutSaldoFinal OUTPUT
-					,@OutMovimientoECId OUTPUT
-					,@OutResultCodeEC OUTPUT
-
-			SELECT  @SaldoFinal = @OutSaldoFinal
-
-			DECLARE @OutMovimientoIdMov INT ,@OutResultCodeMov INT, @OutNuevoSaldo MONEY
-			IF(@OutNumRetirosHumano > @NumeroRetirosHumano)	--Multa por retiros cajero humano.
-				BEGIN
-					EXEC	[dbo].[InsertarMovimientos] 
-							@CuentaId
-							,8
-							,@MultaNumRetirosCH
-							,@inFechaFin
-							,'Multa por retiro cajero humano'
-							,@OutMovimientoIdMov OUTPUT
-							,@OutResultCodeMov OUTPUT
-							,@OutNuevoSaldo OUTPUT
-
-					SET @SaldoFinal = @OutNuevoSaldo
-				END;
-
-			IF(@OutNumRetirosCajero >  @NumeroRetirosAutomatico)	--Multas por retiro cajero automatico.
-				BEGIN
-					EXEC	[dbo].[InsertarMovimientos] 
-							@CuentaId
-							,9
-							,@MultaNumRetirosCA
-							,@inFechaFin
-							,'Multa por retiro cajero humano'
-							,@OutMovimientoIdMov OUTPUT
-							,@OutResultCodeMov OUTPUT
-							,@OutNuevoSaldo OUTPUT
-
-					SET	@SaldoFinal = @OutNuevoSaldo
-				END;
-
-			IF(@SaldoFinal < @SaldoMin AND (@SaldoFinal - @MultaSaldoMin) > 0) -- Multa por saldo minimo
-				BEGIN
-					SET @SaldoFinal = @SaldoFinal - @MultaSaldoMin
-					UPDATE dbo.CuentaAhorro --Solucion provisional
-					SET Saldo = @SaldoFinal
-					WHERE NumeroCuenta = @inCuentaCierra
-				END;
-
-			IF(@SaldoFinal > @SaldoMin) -- Intereses
-				BEGIN 
-					DECLARE @InteresesGanados MONEY =dbo.CalcularInteres(@SaldoFinal,@Interes)
-					EXEC	[dbo].[InsertarMovimientos] 
-							@CuentaId
-							,7
-							,@InteresesGanados
-							,@inFechaFin
-							,'Intereses del mes sobre saldo MInimo'
-							,@OutMovimientoIdMov OUTPUT
-							,@OutResultCodeMov OUTPUT
-							,@OutNuevoSaldo OUTPUT
-					SET @SaldoFinal = @OutNuevoSaldo
-				END;
-			--Se actualiza el movimiento en la base de datos
-			UPDATE dbo.EstadoCuenta
-			SET  SaldoFinal = @SaldoFinal
-			WHERE Id = @EstadoCuentaId
-
-			SET @outMovimientoId = SCOPE_IDENTITY();
+		SET @outMovimientoId = SCOPE_IDENTITY();
+		SET @OutResultCode = 0;
 
 		COMMIT TRANSACTION TSaveCerrEst;
 	END TRY
 
 	BEGIN CATCH
-		IF @@TRANCOUNT > 0 
+		IF @@TRANCOUNT > 0
 			ROLLBACK TRANSACTION TSaveCerrEst;
 
 		INSERT INTO dbo.Errores
 		VALUES (
-			SUSER_SNAME()
-			,ERROR_NUMBER()
-			,ERROR_STATE()
-			,ERROR_SEVERITY()
-			,ERROR_LINE()
-			,ERROR_PROCEDURE()
-			,ERROR_MESSAGE()
-			,GETDATE()
+			SUSER_SNAME(),
+			ERROR_NUMBER(),
+			ERROR_STATE(),
+			ERROR_SEVERITY(),
+			ERROR_LINE(),
+			ERROR_PROCEDURE(),
+			ERROR_MESSAGE(),
+			GETDATE()
 			);
 
 		SET @OutResultCode = 50005;
