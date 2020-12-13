@@ -89,7 +89,7 @@ BEGIN
 			BEGIN
 				EXEC [dbo].[InsertarMovimientos]
 						@CuentaAhorroId, 
-						1, 
+						10, 
 						@MultaSaldoMin, 
 						@FechaMov, 
 						'Multa por incuplimiento saldo minimo',

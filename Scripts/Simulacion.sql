@@ -210,9 +210,9 @@ BEGIN
 					@Monto, 
 					@Fecha, 
 					@Descripcion, 
-					@OutMovimientoIdMov, 
-					@OutResultCodeMov,
-					@OutNuevoSaldoMov
+					@OutMovimientoIdMov OUTPUT, 
+					@OutResultCodeMov OUTPUT,
+					@OutNuevoSaldoMov OUTPUT
 
 			SET @Lo1 = @Lo1 + 1
 		END;
@@ -258,6 +258,8 @@ BEGIN
 				,SaldoInicial
 				,SaldoFinal
 				,SaldoMinimo
+				,RetirosCA
+				,RetirosCH
 			)
 			SELECT	CA.id
 					,CA.NumeroCuenta
@@ -266,6 +268,8 @@ BEGIN
 					,CA.Saldo
 					,0
 					,Ca.Saldo
+					,0
+					,0
 			FROM [dbo].[CuentaAhorro] CA
 			INNER JOIN [dbo].[EstadoCuenta] EC ON EC.id = @CuentaCierra
 			WHERE CA.id = EC.CuentaAhorroid
@@ -281,8 +285,8 @@ END;
 --SELECT * FROM UsuarioPuedeVer
 --SELECT * FROM Persona
 --SELECT * FROM Beneficiarios
---SELECT * FROM CuentaAhorro
---SELECT * FROM EstadoCuenta 
+SELECT * FROM CuentaAhorro
+SELECT * FROM EstadoCuenta 
 SELECT * FROM MovimientoCuentaAhorro --WHERE Descripcion  = 'Intereses del mes sobre saldo MInimo'
 
 --DELETE Usuario
